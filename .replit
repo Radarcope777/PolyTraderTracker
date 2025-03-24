@@ -32,7 +32,6 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm install -g @graphprotocol/graph-cli && npm install && npm run codegen && npm run build"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "subgraph"
