@@ -69,12 +69,19 @@
 
 /* Enhanced focus styles */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
 }
 
 /* Card hover effects */
 .card-hover {
-  @apply transition duration-200 hover:shadow-lg hover:-translate-y-1;
+  transition-duration: 200ms;
+  transition-property: all;
+}
+
+.card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-4px);
 }
 
 /* Skeleton loading animation */
