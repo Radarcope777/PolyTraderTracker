@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts'
-import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, CircleStackIcon, ArrowPathIcon, WalletIcon, DocumentChartBarIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, CircleStackIcon, ArrowPathIcon, WalletIcon, DocumentChartBarIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
 
 function App() {
   const [address, setAddress] = useState('');
@@ -173,18 +173,18 @@ function App() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Animated gradient background header */}
-      <header className="relative bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 text-white shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-white">
+      {/* Header with subtle blue gradient */}
+      <header className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI4LjclIiB5MT0iNTAuNSUiIHgyPSI5MC44JSIgeTI9IjQ5LjUlIiBpZD0iYSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRiIgc3RvcC1vcGFjaXR5PSIwIiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRiIgc3RvcC1vcGFjaXR5PSIuMiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgNDAwVjBoMTQ0MHY0MDBIMHoiIGZpbGw9InVybCgjYSkiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZmlsbC1vcGFjaXR5PSIuMSIvPjwvc3ZnPg==')] opacity-30"></div>
         <div className="container mx-auto px-6 py-6 relative">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
-                <ChartBarIcon className="h-7 w-7 text-indigo-700" />
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
+                <ChartBarIcon className="h-5 w-5 text-blue-600" />
               </div>
-              <h1 className="text-3xl font-extrabold tracking-tight">
-                Polymarket <span className="text-indigo-200">PnL Tracker</span>
+              <h1 className="text-2xl font-bold tracking-tight">
+                Polymarket <span className="text-blue-200">PnL Tracker</span>
               </h1>
             </div>
             <div className="hidden md:flex space-x-6">
@@ -232,7 +232,7 @@ function App() {
               <button 
                 onClick={handleSearch}
                 disabled={loading}
-                className={`px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition duration-300 shadow-sm flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition duration-300 shadow-sm flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {loading ? (
                   <>
@@ -271,14 +271,14 @@ function App() {
             {/* Wallet overview section */}
             <div className="max-w-6xl mx-auto mb-12">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-indigo-800 px-6 py-4">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-white">
                     <div className="flex items-center">
                       <div className="bg-white/10 p-2 rounded-lg mr-3">
-                        <WalletIcon className="h-6 w-6 text-white" />
+                        <WalletIcon className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-indigo-200">Wallet Address</div>
+                        <div className="text-sm font-medium text-blue-200">Wallet Address</div>
                         <div 
                           className="flex items-center cursor-pointer group relative"
                           onMouseEnter={() => setShowAddressTooltip(true)}
@@ -302,25 +302,25 @@ function App() {
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       <button 
                         onClick={() => setTimeRange('7days')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '7days' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '7days' ? 'bg-white text-blue-600' : 'bg-white/10 text-white hover:bg-white/20'}`}
                       >
                         7D
                       </button>
                       <button 
                         onClick={() => setTimeRange('30days')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '30days' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '30days' ? 'bg-white text-blue-600' : 'bg-white/10 text-white hover:bg-white/20'}`}
                       >
                         30D
                       </button>
                       <button 
                         onClick={() => setTimeRange('90days')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '90days' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === '90days' ? 'bg-white text-blue-600' : 'bg-white/10 text-white hover:bg-white/20'}`}
                       >
                         90D
                       </button>
                       <button 
                         onClick={() => setTimeRange('all')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === 'all' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${timeRange === 'all' ? 'bg-white text-blue-600' : 'bg-white/10 text-white hover:bg-white/20'}`}
                       >
                         All
                       </button>
@@ -409,7 +409,7 @@ function App() {
                     onClick={() => setActiveTab('overview')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === 'overview'
-                        ? 'border-indigo-500 text-indigo-600'
+                        ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -419,7 +419,7 @@ function App() {
                     onClick={() => setActiveTab('markets')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === 'markets'
-                        ? 'border-indigo-500 text-indigo-600'
+                        ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -429,7 +429,7 @@ function App() {
                     onClick={() => setActiveTab('activity')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === 'activity'
-                        ? 'border-indigo-500 text-indigo-600'
+                        ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
