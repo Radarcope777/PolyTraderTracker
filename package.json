@@ -16,6 +16,7 @@
     "@apollo/client": "^3.13.5",
     "@graphprotocol/graph-cli": "^0.96.0",
     "@graphprotocol/graph-ts": "^0.38.0",
+    "@heroicons/react": "^2.2.0",
     "@stripe/react-stripe-js": "^3.5.1",
     "@stripe/stripe-js": "^6.1.0",
     "@tailwindcss/postcss": "^4.0.15",
