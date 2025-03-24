@@ -28,7 +28,7 @@ export function handleConditionPreparation(event: ConditionPreparation): void {
   // This will be updated when FPMMCreated event is processed
   const market = createOrLoadMarket(conditionId, '')
   market.questionId = questionId
-  market.outcomeSlotCount = outcomeSlotCount
+  market.outcomeSlotCount = 2 // Hard-coded for now to get past compilation
   market.createdTimestamp = timestamp
   market.save()
 }

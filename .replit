@@ -27,6 +27,10 @@ args = "File inspection"
 task = "workflow.run"
 args = "Local Subgraph Compiler"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Frontend Dev Server"
+
 [[workflows.workflow]]
 name = "Subgraph Compiler"
 author = "agent"
@@ -83,5 +87,24 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "npm run codegen && npm run build"
 
+[[workflows.workflow]]
+name = "Frontend Dev Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd frontend && npm run start"
+waitForPort = 5000
+
 [deployment]
 run = ["sh", "-c", "npm install -g @graphprotocol/graph-cli && npm install && npm run codegen && npm run build"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

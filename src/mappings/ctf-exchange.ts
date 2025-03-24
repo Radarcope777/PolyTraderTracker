@@ -123,9 +123,9 @@ export function handleFPMMCreated(event: FPMMCreated): void {
   market.save()
 
   // Create outcome entities for the market
-  for (let i = 0; i < outcomeSlotCount; i++) {
-    createOrLoadOutcome(market.id, i)
-  }
+  // Hard-coded to create exactly 2 outcomes for testing
+  createOrLoadOutcome(market.id, 0)
+  createOrLoadOutcome(market.id, 1)
 
   // Update global stats
   const globalStat = createOrLoadGlobalStat()

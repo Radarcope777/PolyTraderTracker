@@ -1,0 +1,393 @@
+subgraph development
+Polymarket and their platform, as well as their smart contract(s)
+We need a subgraph that:
+tracks a users trading activity on Polymarket (including token transfers, trades, and rewards)
+calculates their daily PnL (both trading PnL and liquidity/rewards PnL)
+stores this data historically so you can query a user's PnL for any day since they started trading
+matches the historical PnL graph in this site(https://polymarketanalytics.com/traders/0x7c3db723f1d4d8cb9c550095203b686cb11e5c6b)
+To give you some insight, here's how Polymarket PnL should be calculated layed out in a Dune SQL file:
+https://dune.com/queries/3366316
+
+-- DO NOT RUN ON FREE PLAN OR IT WILL TIME OUT. STOP BEING LAZY AND MAKE A FREE ACOUNT AND RUN ON MEDIUM!
+
+with
+  markets as (
+    SELECT
+      a.*,
+      COALESCE(b.question, 'unknown') as question
+    FROM
+      polymarket_polygon.CTFExchange_evt_TokenRegistered a
+      LEFT JOIN dune.lifewillbeokay.dataset_polymarket_metadata b ON a.conditionid = b.condition_id
+    UNION
+    SELECT
+      a.*,
+      b.question
+    FROM
+      polymarket_polygon.NegRiskCtfExchange_evt_TokenRegistered a
+      LEFT JOIN dune.lifewillbeokay.dataset_polymarket_metadata b ON a.conditionid = b.condition_id
+  ),
+  amm_markets AS (
+    SELECT
+      a.fixedProductMarketMaker,
+      COALESCE(b.question, 'unknown') as question
+    FROM
+      polymarketfactory_polygon.FixedProductMarketMakerFactory_evt_FixedProductMarketMakerCreation a
+      LEFT JOIN dune.lifewillbeokay.dataset_polymarket_metadata b ON a.conditionids[1] = b.condition_id
+    WHERE
+      collateralToken = 0x2791bca1f2de4661ed88a30c99a7a9449aa84174
+  ),
+  clob_combined AS (
+    SELECT
+      *
+    FROM
+      polymarket_polygon.CTFExchange_evt_OrderFilled
+    UNION
+    SELECT
+      *
+    FROM
+      polymarket_polygon.NegRiskCtfExchange_evt_OrderFilled
+  ),
+  sends as (
+    select
+      t.evt_tx_hash,
+      t."from" as user,
+      CAST(id as VARCHAR) as tokenID,
+      r.question,
+      - CAST(t.value as DOUBLE) / 1000000.0 as amount
+    from
+      erc1155_polygon.evt_TransferSingle t
+      join markets r on CAST(t.id as VARCHAR) = CAST(r.token0 as VARCHAR)
+  ),
+  receives as (
+    select
+      t.evt_tx_hash,
+      t."to" as user,
+      CAST(id as VARCHAR) as tokenID,
+      r.question,
+      CAST(t.value as DOUBLE) / 1000000.0 as amount
+    from
+      erc1155_polygon.evt_TransferSingle t
+      join markets r on CAST(t.id as VARCHAR) = CAST(r.token0 as VARCHAR)
+  ),
+  batch AS (
+    SELECT
+      tb.*,
+      tb.ids AS ids_array,
+      tb."values" AS values_array
+    FROM
+      erc1155_polygon.evt_TransferBatch AS tb
+  ),
+  batch_from as (
+    SELECT
+      at.evt_tx_hash,
+      at."from" as user,
+      CAST(t.id as VARCHAR) as tokenID,
+      r.question,
+      - CAST(t.value as DOUBLE) / 1000000.0 as amount
+    FROM
+      batch AS at
+      CROSS JOIN UNNEST (at.ids_array, at.values_array) AS t (id, value)
+      join markets r on CAST(id as VARCHAR) = CAST(r.token0 as VARCHAR)
+  ),
+  batch_to as (
+    SELECT
+      at.evt_tx_hash,
+      at."to" as user,
+      CAST(t.id as VARCHAR) as tokenID,
+      r.question,
+      CAST(t.value as DOUBLE) / 1000000.0 as amount
+    FROM
+      batch AS at
+      CROSS JOIN UNNEST (at.ids_array, at.values_array) AS t (id, value)
+      join markets r on CAST(id as VARCHAR) = CAST(r.token0 as VARCHAR)
+  ),
+  combined_first as (
+    select
+      *
+    from
+      sends
+    union all
+    select
+      *
+    from
+      receives
+    union all
+    select
+      *
+    from
+      batch_from
+    union all
+    select
+      *
+    from
+      batch_to
+  ),
+  erc20 as (
+    select
+      e.*
+    from
+      erc20_polygon.evt_Transfer e
+    where
+      contract_address = 0x2791bca1f2de4661ed88a30c99a7a9449aa84174
+      AND (
+        e.evt_tx_hash IN (
+          SELECT
+            evt_tx_hash
+          FROM
+            combined_first
+        )
+        OR e."from" IN (
+          SELECT
+            fixedProductMarketMaker
+          FROM
+            amm_markets
+        )
+        OR e."to" IN (
+          SELECT
+            fixedProductMarketMaker
+          FROM
+            amm_markets
+        )
+        OR e."from" = 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045
+        OR e."to" = 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045
+      )
+  ),
+  erc20_from as (
+    select
+      t.evt_tx_hash,
+      t."from" as user,
+      'USDC' as tokenID,
+      - CAST(t.value as DOUBLE) / 1000000.0 as amount
+    from
+      erc20 t
+  ),
+  erc20_to as (
+    select
+      t.evt_tx_hash,
+      t."to" as user,
+      'USDC' as tokenID,
+      CAST(t.value as DOUBLE) / 1000000.0 as amount
+    from
+      erc20 t
+  ),
+  combined as (
+    select
+      evt_tx_hash,
+      user,
+      tokenID,
+      amount
+    from
+      combined_first
+    union all
+    select
+      *
+    from
+      erc20_from
+    union all
+    select
+      *
+    from
+      erc20_to
+  ),
+  latest_times AS (
+    SELECT
+      CASE
+        WHEN CAST(makerAssetID AS VARCHAR) = '0' THEN CAST(takerAssetId AS VARCHAR)
+        WHEN CAST(takerAssetId AS VARCHAR) = '0' THEN CAST(makerAssetID AS VARCHAR)
+        ELSE '0'
+      END as tokenID,
+      MAX(evt_block_time) AS max_time
+    FROM
+      clob_combined
+    GROUP BY
+      1
+  ),
+  prices AS (
+    SELECT
+      lt.tokenID,
+      SUM(
+        CASE
+          WHEN ABS(date_diff('day', NOW(), lt.max_time)) > 14 THEN 0
+          WHEN CAST(t.makerAssetID AS VARCHAR) = '0' THEN CAST(t.makerAmountFilled AS DOUBLE)
+          ELSE CAST(t.takerAmountFilled AS DOUBLE)
+        END
+      ) / SUM(
+        CASE
+          WHEN CAST(t.makerAssetID AS VARCHAR) = '0' THEN CAST(t.takerAmountFilled AS DOUBLE)
+          ELSE CAST(t.makerAmountFilled AS DOUBLE)
+        END
+      ) as price
+    FROM
+      clob_combined t
+      JOIN latest_times lt ON t.evt_block_time = lt.max_time
+      AND (
+        (
+          CAST(t.makerAssetID AS VARCHAR) = lt.tokenID
+          AND CAST(t.makerAssetID AS VARCHAR) != '0'
+        )
+        OR (
+          CAST(t.takerAssetId AS VARCHAR) = lt.tokenID
+          AND CAST(t.takerAssetId AS VARCHAR) != '0'
+        )
+      )
+    GROUP BY
+      1
+  ),
+  holders as (
+    select
+      CAST(c.user as VARCHAR) as user,
+      c.tokenId,
+      SUM(amount) as amount,
+      MAX(
+        CASE
+          WHEN p.tokenID != 'USDC' THEN p.price
+          ELSE 1
+        END
+      ) as P1_P2_Latest_Price
+    from
+      combined c
+      left join prices p on c.tokenID = p.tokenID
+    where
+      CAST(c.user AS VARCHAR) NOT IN (
+        '0x4d97dcd97ec945f40cf65f87097ace5ea0476045',
+        '0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e',
+        '0x78769D50Be1763ed1CA0D5E878D93f05aabff29e',
+        '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2',
+        '0xa5ef39c3d3e10d0b270233af41cac69796b12966',
+        '0xA2bD9CC3e04996Ca683C834E4D86A016f6bbDE5A',
+        '0x0000000000000000000000000000000000000000'
+      )
+      AND CAST(c.user AS VARBINARY) NOT IN (
+        SELECT
+          fixedProductMarketMaker
+        FROM
+          amm_markets
+      )
+    group by
+      1,
+      2
+  ),
+  uma as (
+    SELECT
+      evt_block_time AT TIME ZONE 'America/New_York' as date,
+      airdropRecipient,
+      'uma' as asset,
+      SUM(amount / 10e17) as lc_amount,
+      SUM(amount / 10e17 * price) as usd_amount
+    FROM
+      polymarket_uma_merkle_distributor_polygon.MerkleDistributor_evt_Claimed
+      JOIN (
+        SELECT
+          minute,
+          price
+        FROM
+          prices.usd
+        WHERE
+          symbol = 'UMA'
+          and blockchain = 'ethereum'
+      ) AS prices ON date_trunc('minute', evt_block_time) = prices.minute
+    GROUP BY
+      1,
+      2,
+      3
+  ),
+  usdc AS (
+    SELECT
+      evt_block_time AT TIME ZONE 'America/New_York' as date,
+      airdropRecipient,
+      'usdc' as asset,
+      SUM(amount / 1000000.0) as lc_amount,
+      SUM(amount / 1000000.0) as usd_amount
+    FROM
+      polymarket_usdc_merkle_distributor_polygon.MerkleDistributor_evt_Claimed
+    GROUP BY
+      1,
+      2,
+      3
+  ),
+  usdc_new as (
+    select
+      evt_block_time AT TIME ZONE 'America/New_York' as date,
+      to as airdropRecipient,
+      'usdc' as asset,
+      SUM(CAST(value as DOUBLE) / 1000000.0) as lc_amount,
+      SUM(CAST(value as DOUBLE) / 1000000.0) as usd_amount
+    from
+      erc20_polygon.evt_Transfer
+    where
+      "from" = 0xc288480574783BD7615170660d71753378159c47
+      and contract_address = 0x2791bca1f2de4661ed88a30c99a7a9449aa84174
+    group by
+      1,
+      2,
+      3
+  ),
+  rewards as (
+    select
+      *
+    from
+      uma
+    UNION
+    select
+      *
+    from
+      usdc
+    UNION
+    select
+      *
+    from
+      usdc_new
+  ),
+  liq_pnl as (
+    select
+      airdropRecipient as user,
+      SUM(usd_amount) as amount
+    from
+      rewards
+    group by
+      1
+  ),
+  trading_pnl as (
+    select
+      h.user,
+      SUM(
+        CASE
+          WHEN tokenID = 'USDC' THEN h.amount
+          ELSE 0
+        END
+      ) as net_usdc,
+      SUM(
+        CASE
+          WHEN tokenID != 'USDC' THEN P1_P2_Latest_Price * h.amount
+          ELSE 0
+        END
+      ) as share_value,
+      SUM(P1_P2_Latest_Price * h.amount) as total_pnl
+    from
+      holders h
+    group by
+      1
+  )
+select
+  concat(
+        '<a href=https://polymarket.com/profile/',
+        CAST(t.user as VARCHAR),
+        ' target=blank>',
+        "LEFT" (CAST(t.user as VARCHAR), 10),
+        '</a>'
+      ) as user,
+  SUM(t.net_usdc) as net_usdc,
+  SUM(ROUND(t.share_value, 0)) as share_value,
+  SUM(t.total_pnl) as trading_pnl,
+  SUM(COALESCE(l.amount, 0)) as liq_pnl,
+  SUM(t.total_pnl + COALESCE(l.amount, 0)) as total_pnl
+from
+  trading_pnl t
+  left join liq_pnl l on CAST(t.user as VARCHAR) = CAST(l.user as VARCHAR)
+group by
+  1
+order by
+  6 desc
+
+This Dune SQL file calculates PnL extremely accurately, but unfortunately, not historically.
+plenty depending on how accurate your data will be.
