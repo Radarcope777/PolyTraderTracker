@@ -1,6 +1,8 @@
 import { BigDecimal, BigInt, Address, log } from '@graphprotocol/graph-ts'
-import { Transfer as TransferEvent } from '../types/USDC/ERC20'
-import { User, Transfer } from '../types/schema'
+// AssemblyScript types
+declare type i32 = number;
+import { Transfer as TransferEvent } from '../../generated/USDC/ERC20'
+import { User, Transfer } from '../../generated/schema'
 import { createOrLoadUser } from '../utils/helpers'
 import { convertTokenToDecimal } from '../utils/math'
 import { USDC_DECIMALS, TRANSFER_TYPE_DEPOSIT, TRANSFER_TYPE_WITHDRAWAL } from '../utils/constants'

@@ -1,5 +1,7 @@
 import { BigDecimal, BigInt, log, store } from '@graphprotocol/graph-ts'
-import { User, Position, DailyUserSnapshot } from '../types/schema'
+// AssemblyScript types
+declare type i32 = number;
+import { User, Position, DailyUserSnapshot } from '../../generated/schema'
 import { TRADE_TYPE_BUY, TRADE_TYPE_SELL } from './constants'
 import { ZERO_BD, ONE_BD } from './math'
 

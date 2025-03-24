@@ -1,0 +1,91 @@
+specVersion: 0.0.4
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CTFExchange
+    network: matic
+    source:
+      address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"
+      abi: CTFExchange
+      startBlock: 17112009
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Market
+        - Outcome
+        - Position
+        - Trade
+        - DailyUserSnapshot
+        - GlobalStat
+      abis:
+        - name: CTFExchange
+          file: CTFExchange/CTFExchange.json
+        - name: ConditionalTokens
+          file: CTFExchange/ConditionalTokens.json
+        - name: ERC20
+          file: CTFExchange/ERC20.json
+      eventHandlers:
+        - event: TradeOccurred(indexed address,indexed bytes32,indexed
+            uint256,address,uint256,uint256,uint256,uint256)
+          handler: handleTradeOccurred
+        - event: FPMMCreated(address,bytes32,address,address,uint256)
+          handler: handleFPMMCreated
+        - event: FPMMResolved(address,bytes32)
+          handler: handleFPMMResolved
+      file: CTFExchange/CTFExchange.wasm
+  - kind: ethereum
+    name: ConditionalTokens
+    network: matic
+    source:
+      address: "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"
+      abi: ConditionalTokens
+      startBlock: 17112009
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Market
+        - Position
+      abis:
+        - name: ConditionalTokens
+          file: ConditionalTokens/ConditionalTokens.json
+      eventHandlers:
+        - event: ConditionPreparation(indexed bytes32,indexed address,indexed bytes32,uint256)
+          handler: handleConditionPreparation
+        - event: ConditionResolution(indexed bytes32,indexed address,indexed
+            bytes32,uint256,uint256[])
+          handler: handleConditionResolution
+        - event: PositionSplit(indexed address,indexed address,indexed bytes32,uint256[],uint256)
+          handler: handlePositionSplit
+        - event: PositionsMerge(indexed address,indexed address,indexed bytes32,uint256[],uint256)
+          handler: handlePositionsMerge
+        - event: PayoutRedemption(indexed address,indexed address,indexed bytes32,uint256[],uint256)
+          handler: handlePayoutRedemption
+      file: ConditionalTokens/ConditionalTokens.wasm
+  - kind: ethereum
+    name: USDC
+    network: matic
+    source:
+      address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+      abi: ERC20
+      startBlock: 17112009
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Transfer
+      abis:
+        - name: ERC20
+          file: USDC/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: USDC/USDC.wasm

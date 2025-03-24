@@ -1,14 +1,16 @@
 import { BigDecimal, BigInt, Address, Bytes, log } from '@graphprotocol/graph-ts'
+// AssemblyScript types
+declare type i32 = number;
 import {
   TradeOccurred,
   FPMMCreated,
   FPMMResolved
-} from '../types/CTFExchange/CTFExchange'
-import { User, Market, Outcome, Position, Trade, DailyUserSnapshot, GlobalStat } from '../types/schema'
+} from '../../generated/CTFExchange/CTFExchange'
+import { User, Market, Outcome, Position, Trade, DailyUserSnapshot, GlobalStat } from '../../generated/schema'
 import { createOrLoadUser, createOrLoadMarket, createOrLoadOutcome, createOrLoadPosition, createOrLoadGlobalStat } from '../utils/helpers'
 import { calculateTradePnL, updateDailySnapshot } from '../utils/pnl'
 import { TRADE_TYPE_BUY, TRADE_TYPE_SELL, USDC_DECIMALS } from '../utils/constants'
-import { convertTokenToDecimal } from '../utils/math'
+import { convertTokenToDecimal, absoluteValue } from '../utils/math'
 
 export function handleTradeOccurred(event: TradeOccurred): void {
   // Get basic event data
@@ -39,7 +41,7 @@ export function handleTradeOccurred(event: TradeOccurred): void {
   // Calculate price for this trade
   let price = BigDecimal.fromString('0')
   if (outcomeTokensAmount.notEqual(BigDecimal.fromString('0'))) {
-    price = collateral.div(outcomeTokensAmount.abs())
+    price = collateral.div(absoluteValue(outcomeTokensAmount))
   }
 
   // Calculate realized PnL for this trade
@@ -49,7 +51,7 @@ export function handleTradeOccurred(event: TradeOccurred): void {
     position.id,
     tradeType,
     collateral,
-    outcomeTokensAmount.abs(),
+    absoluteValue(outcomeTokensAmount),
     price
   )
 

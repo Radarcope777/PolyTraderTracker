@@ -1,5 +1,7 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
-import { User, Market, Outcome, Position, GlobalStat } from '../types/schema'
+// AssemblyScript types
+declare type i32 = number;
+import { User, Market, Outcome, Position, GlobalStat } from '../../generated/schema'
 import { ZERO_BD, ZERO_BI } from './math'
 
 export function createOrLoadUser(address: string): User {
@@ -54,14 +56,17 @@ export function createOrLoadMarket(conditionId: string, fpmm: string): Market {
   return market as Market
 }
 
-export function createOrLoadOutcome(marketId: string, index: i32): Outcome {
+export function createOrLoadOutcome(marketId: string, index: number): Outcome {
   const outcomeId = marketId + '-' + index.toString()
   let outcome = Outcome.load(outcomeId)
   
   if (!outcome) {
     outcome = new Outcome(outcomeId)
     outcome.market = marketId
-    outcome.index = index
+    // First convert to i32 explicitly
+    const indexAsI32 = index as i32
+    // Then assign the converted value
+    outcome.index = indexAsI32
     outcome.value = ''  // This could be filled with actual outcome names if available
     outcome.save()
   }

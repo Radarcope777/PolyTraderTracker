@@ -1,12 +1,14 @@
 import { BigDecimal, BigInt, Address, Bytes, log } from '@graphprotocol/graph-ts'
+// AssemblyScript types
+declare type i32 = number;
 import {
   ConditionPreparation,
   ConditionResolution,
   PositionSplit,
   PositionsMerge,
   PayoutRedemption
-} from '../types/ConditionalTokens/ConditionalTokens'
-import { User, Market, Position } from '../types/schema'
+} from '../../generated/ConditionalTokens/ConditionalTokens'
+import { User, Market, Position } from '../../generated/schema'
 import { createOrLoadUser, createOrLoadMarket, createOrLoadPosition } from '../utils/helpers'
 import { convertTokenToDecimal } from '../utils/math'
 import { calculateRedemptionPnL, updateDailySnapshot } from '../utils/pnl'
@@ -16,7 +18,7 @@ export function handleConditionPreparation(event: ConditionPreparation): void {
   const conditionId = event.params.conditionId.toHexString()
   const oracle = event.params.oracle.toHexString()
   const questionId = event.params.questionId.toHexString()
-  const outcomeSlotCount = event.params.outcomeSlotCount.toI32()
+  const outcomeSlotCount = event.params.outcomeSlotCount.toI32() as i32
   const timestamp = event.block.timestamp
 
   // We don't know the FPMM address yet, so we use the condition ID as the market ID

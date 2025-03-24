@@ -19,6 +19,14 @@ args = "Subgraph Compiler"
 task = "workflow.run"
 args = "subgraph"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "File inspection"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Local Subgraph Compiler"
+
 [[workflows.workflow]]
 name = "Subgraph Compiler"
 author = "agent"
@@ -46,6 +54,34 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "ls -la && find . -type f -name \"*.ts\" -o -name \"*.graphql\" -o -name \"*.yaml\" | sort"
+
+[[workflows.workflow]]
+name = "File inspection"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cat schema.graphql && echo \"---\" && cat subgraph.yaml"
+
+[[workflows.workflow]]
+name = "Local Subgraph Compiler"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run codegen && npm run build"
 
 [deployment]
 run = ["sh", "-c", "npm install -g @graphprotocol/graph-cli && npm install && npm run codegen && npm run build"]

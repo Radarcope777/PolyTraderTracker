@@ -1,0 +1,111 @@
+type User @entity {
+  id: ID! # User address
+  totalTradeVolumeUSDC: BigDecimal!
+  totalPnLUSDC: BigDecimal!
+  tradingPnLUSDC: BigDecimal!
+  rewardsPnLUSDC: BigDecimal!
+  firstTradeTimestamp: BigInt
+  lastTradeTimestamp: BigInt
+  trades: [Trade!]! @derivedFrom(field: "user")
+  transfers: [Transfer!]! @derivedFrom(field: "user")
+  rewards: [Reward!]! @derivedFrom(field: "user")
+  dailySnapshots: [DailyUserSnapshot!]! @derivedFrom(field: "user")
+}
+
+type Market @entity {
+  id: ID! # Market ID
+  conditionId: String!
+  questionId: String!
+  creator: String!
+  createdTimestamp: BigInt!
+  resolutionTimestamp: BigInt
+  resolved: Boolean!
+  outcomeSlotCount: Int!
+  outcomes: [Outcome!]! @derivedFrom(field: "market")
+  positions: [Position!]! @derivedFrom(field: "market")
+  totalVolumeUSDC: BigDecimal!
+  trades: [Trade!]! @derivedFrom(field: "market")
+}
+
+type Outcome @entity {
+  id: ID! # Market ID + index
+  market: Market!
+  index: Int!
+  value: String!
+  positions: [Position!]! @derivedFrom(field: "outcome")
+}
+
+type Position @entity {
+  id: ID! # CollateralToken + conditionId + indexSet
+  market: Market!
+  outcome: Outcome!
+  collateralToken: String!
+  conditionId: String!
+  indexSet: BigInt!
+  positionId: BigInt!
+  trades: [Trade!]! @derivedFrom(field: "position")
+}
+
+type Trade @entity {
+  id: ID! # Transaction hash + log index
+  user: User!
+  market: Market!
+  position: Position!
+  type: String! # BUY or SELL
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: String!
+  amountUSDC: BigDecimal!
+  outcomeIndex: Int!
+  outcomeTokensAmount: BigDecimal!
+  feePaid: BigDecimal!
+  price: BigDecimal!
+  realizedPnL: BigDecimal!
+}
+
+type Transfer @entity {
+  id: ID! # Transaction hash + log index
+  user: User!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: String!
+  tokenAddress: String!
+  from: String!
+  to: String!
+  amount: BigDecimal!
+  type: String! # DEPOSIT or WITHDRAWAL
+}
+
+type Reward @entity {
+  id: ID! # Transaction hash + log index
+  user: User!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: String!
+  amountUSDC: BigDecimal!
+  type: String! # LIQUIDITY_MINING, REFERRAL, etc.
+}
+
+type DailyUserSnapshot @entity {
+  id: ID! # User address + day timestamp
+  user: User!
+  timestamp: BigInt!
+  dayStartTimestamp: BigInt!
+  dayEndTimestamp: BigInt!
+  dailyTradeVolumeUSDC: BigDecimal!
+  dailyTradingPnLUSDC: BigDecimal!
+  dailyRewardsPnLUSDC: BigDecimal!
+  dailyTotalPnLUSDC: BigDecimal!
+  cumulativeTradeVolumeUSDC: BigDecimal!
+  cumulativeTradingPnLUSDC: BigDecimal!
+  cumulativeRewardsPnLUSDC: BigDecimal!
+  cumulativeTotalPnLUSDC: BigDecimal!
+}
+
+type GlobalStat @entity {
+  id: ID! # "global"
+  totalUsers: BigInt!
+  totalMarkets: BigInt!
+  totalTradeVolumeUSDC: BigDecimal!
+  lastUpdateTimestamp: BigInt!
+}
