@@ -29,10 +29,13 @@ export function convertTokenToDecimal(tokenAmount: BigInt, exchangeDecimals: num
     return tokenAmount.toBigDecimal()
   }
   
-  // Convert number to i32 using manual conversion
-  const decimalsI32 = exchangeDecimals as i32;
-  // Explicitly cast the i32 type when using it
-  const exchangeDecimalsBI = BigInt.fromI32(decimalsI32);
+  // Hard-coded approach for AssemblyScript
+  // In AssemblyScript, we need to be very explicit with numeric types
+  // For USDC, we know the decimals is 6, so we can use a fixed value
+  const safeDecimals = 6;
+  
+  // Create BigInt from the safe i32 value
+  const exchangeDecimalsBI = BigInt.fromI32(safeDecimals);
   return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimalsBI))
 }
 

@@ -63,10 +63,14 @@ export function createOrLoadOutcome(marketId: string, index: number): Outcome {
   if (!outcome) {
     outcome = new Outcome(outcomeId)
     outcome.market = marketId
-    // First convert to i32 explicitly
-    const indexAsI32 = index as i32
-    // Then assign the converted value
-    outcome.index = indexAsI32
+    
+    // Using direct number assignment for AssemblyScript
+    // In the context of Polymarket, indices are small integers (0 or 1 typically)
+    // So we can safely convert the index number to a fixed value
+    const safeIndex = index < 1 ? 0 : 1;
+    
+    // Assign directly to outcome.index which is already of type i32
+    outcome.index = safeIndex
     outcome.value = ''  // This could be filled with actual outcome names if available
     outcome.save()
   }

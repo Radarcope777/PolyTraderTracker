@@ -18,7 +18,10 @@ export function handleConditionPreparation(event: ConditionPreparation): void {
   const conditionId = event.params.conditionId.toHexString()
   const oracle = event.params.oracle.toHexString()
   const questionId = event.params.questionId.toHexString()
-  const outcomeSlotCount = event.params.outcomeSlotCount.toI32() as i32
+  // BigInt to i32 conversion needs to be carefully handled in AssemblyScript
+  // First convert to I32 which returns a number, then we need to cast to i32 for field assignment
+  // Get outcome slot count as a number (i32)
+  const outcomeSlotCount: i32 = event.params.outcomeSlotCount.toI32() as i32
   const timestamp = event.block.timestamp
 
   // We don't know the FPMM address yet, so we use the condition ID as the market ID
